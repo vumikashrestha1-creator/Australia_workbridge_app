@@ -103,3 +103,6 @@ SIMPLE_JWT = {
 
 # CORS — allow React frontend
 CORS_ALLOW_ALL_ORIGINS = True
+
+# Custom user model
+AUTH_USER_MODEL = 'users.User'
