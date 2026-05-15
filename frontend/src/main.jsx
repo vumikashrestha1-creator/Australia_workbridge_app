@@ -1,0 +1,24 @@
+// =============================================================
+// main.jsx
+// PURPOSE: Entry point — mounts React to the HTML page
+// Wraps App with:
+//   BrowserRouter — enables URL routing
+//   AuthProvider  — enables global user state
+// =============================================================
+
+import { StrictMode }      from 'react'
+import { createRoot }      from 'react-dom/client'
+import { BrowserRouter }   from 'react-router-dom'
+import { AuthProvider }    from './context/AuthContext'
+import './index.css'
+import App                 from './App.jsx'
+
+createRoot(document.getElementById('root')).render(
+  <StrictMode>
+    <BrowserRouter>
+      <AuthProvider>
+        <App />
+      </AuthProvider>
+    </BrowserRouter>
+  </StrictMode>,
+)
