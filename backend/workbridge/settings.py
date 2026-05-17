@@ -107,3 +107,14 @@ CORS_ALLOW_ALL_ORIGINS = True
 
 # Custom user model
 AUTH_USER_MODEL = 'users.User'
+
+# =============================================================
+# MEDIA FILES — for user uploads (resumes, cover letters)
+# =============================================================
+# MEDIA_ROOT  = where uploaded files are saved on disk
+# MEDIA_URL   = URL path to serve files in browser
+# =============================================================
+
+import os
+MEDIA_URL  = '/media/'
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')

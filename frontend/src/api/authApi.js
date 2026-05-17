@@ -1,10 +1,7 @@
 // =============================================================
 // api/authApi.js
-// PURPOSE: All authentication-related API calls
-// Wraps Axios calls so components don't deal with URLs directly
-//
-// Components call: authApi.login(...)
-// authApi handles: POST /api/auth/login/ + saving tokens
+// PURPOSE: All auth-related API calls
+// updateProfile handles BOTH regular JSON and file uploads
 // =============================================================
 
 import api from './axios'
@@ -12,26 +9,18 @@ import api from './axios'
 const authApi = {
 
   // ─── REGISTER ──────────────────────────────────────────
-  // POST /api/auth/register/
-  // Used in the Register page
   register: async (userData) => {
     const response = await api.post('/auth/register/', userData)
     return response.data
-    // returns { message, tokens: { access, refresh }, user }
   },
 
   // ─── LOGIN ─────────────────────────────────────────────
-  // POST /api/auth/login/
-  // Used in the Login page
   login: async (email, password) => {
     const response = await api.post('/auth/login/', { email, password })
     return response.data
-    // returns { message, tokens: { access, refresh }, user }
   },
 
   // ─── LOGOUT ────────────────────────────────────────────
-  // POST /api/auth/logout/
-  // Blacklists the refresh token on the backend
   logout: async (refreshToken) => {
     const response = await api.post('/auth/logout/', {
       refresh: refreshToken,
@@ -40,16 +29,32 @@ const authApi = {
   },
 
   // ─── GET CURRENT USER ──────────────────────────────────
-  // GET /api/auth/me/
-  // Used to refresh user data (e.g. after profile update)
   getMe: async () => {
     const response = await api.get('/auth/me/')
     return response.data
   },
 
-  // ─── UPDATE PROFILE ────────────────────────────────────
-  // PUT /api/auth/me/
+  // ─── UPDATE PROFILE (TEXT OR FILE) ─────────────────────
+  // If data contains a File, sends as multipart/form-data
+  // Otherwise sends as JSON
   updateProfile: async (data) => {
+    const hasFile = Object.values(data).some((v) => v instanceof File)
+
+    if (hasFile) {
+      // Build FormData for file upload
+      const formData = new FormData()
+      Object.entries(data).forEach(([key, value]) => {
+        if (value !== null && value !== undefined) {
+          formData.append(key, value)
+        }
+      })
+      const response = await api.put('/auth/me/', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+      })
+      return response.data
+    }
+
+    // No file — regular JSON request
     const response = await api.put('/auth/me/', data)
     return response.data
   },

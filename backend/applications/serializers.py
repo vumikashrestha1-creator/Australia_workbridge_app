@@ -1,10 +1,7 @@
 # =============================================================
 # applications/serializers.py
-# PURPOSE: Converts Application objects to JSON
-# Two serializers:
-#   ApplicationSerializer       — full data for responses
-#   ApplicationCreateSerializer — for creating new applications
-#   ApplicationStatusSerializer — for employer updating status
+# PURPOSE: Convert Application objects to/from JSON
+# Includes file fields for resume + cover letter
 # =============================================================
 
 from rest_framework import serializers
@@ -14,67 +11,51 @@ from jobs.serializers import JobSerializer
 
 
 class ApplicationSerializer(serializers.ModelSerializer):
-    # ─── NESTED DATA ────────────────────────────────────────
-    # Include full student and job details in response
-    # so frontend doesn't need to make extra API calls
+    """Full data for reading applications — used by both
+    student dashboard and employer applicant view."""
 
-    student_details = UserSerializer(
-        source='student',
-        read_only=True
-    )
-    # Returns full student profile in response
-
-    job_details = JobSerializer(
-        source='job',
-        read_only=True
-    )
-    # Returns full job details in response
+    student_details = UserSerializer(source='student', read_only=True)
+    job_details     = JobSerializer(source='job', read_only=True)
 
     class Meta:
         model  = Application
         fields = [
             'id',
-            'student',          # student ID
-            'student_details',  # full student object
-            'job',              # job ID
-            'job_details',      # full job object
+            'student',
+            'student_details',
+            'job',
+            'job_details',
             'cover_note',
+            'resume',          # file URL
+            'cover_letter',    # file URL
             'status',
             'interview_date',
             'interview_notes',
             'applied_at',
             'updated_at',
         ]
-        read_only_fields = [
-            'id',
-            'student',
-            'applied_at',
-            'updated_at'
-        ]
+        read_only_fields = ['id', 'student', 'applied_at', 'updated_at']
 
 
 class ApplicationCreateSerializer(serializers.ModelSerializer):
-    # ─── USED WHEN STUDENT APPLIES FOR A JOB ────────────────
-    # Student only sends job ID and optional cover note
-    # student is set automatically from JWT token in views.py
+    """Used when student submits a new application."""
 
     class Meta:
         model  = Application
-        fields = ['job', 'cover_note']
+        fields = ['job', 'cover_note', 'resume', 'cover_letter']
 
     def validate(self, attrs):
-        # Get the logged in student from request context
         request = self.context['request']
         student = request.user
         job     = attrs['job']
 
-        # Check student is not applying to their own job
+        # Employer cannot apply to their own job
         if job.employer == student:
             raise serializers.ValidationError(
                 'Employers cannot apply to their own jobs'
             )
 
-        # Check student has not already applied to this job
+        # Prevent duplicate applications
         if Application.objects.filter(student=student, job=job).exists():
             raise serializers.ValidationError(
                 'You have already applied for this job'
@@ -83,7 +64,6 @@ class ApplicationCreateSerializer(serializers.ModelSerializer):
         return attrs
 
     def create(self, validated_data):
-        # Automatically set student from logged in user
         request = self.context['request']
         application = Application.objects.create(
             student=request.user,
@@ -93,11 +73,12 @@ class ApplicationCreateSerializer(serializers.ModelSerializer):
 
 
 class ApplicationStatusSerializer(serializers.ModelSerializer):
-    # ─── USED WHEN EMPLOYER UPDATES APPLICATION STATUS ──────
-    # Employer can only change the status field
-    # They cannot change anything else
+    """Used by employer to update status and/or schedule interview."""
 
     class Meta:
         model  = Application
         fields = ['status', 'interview_date', 'interview_notes']
-        # Only status can be updated by employer
+        extra_kwargs = {
+            'interview_date':  {'required': False, 'allow_null': True},
+            'interview_notes': {'required': False, 'allow_null': True, 'allow_blank': True},
+        }

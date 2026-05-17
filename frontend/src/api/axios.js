@@ -1,25 +1,30 @@
 // =============================================================
 // api/axios.js
-// PURPOSE: Central Axios instance pre-configured to talk
-// to our Django backend. All other API files import this.
-//
-// WHY: If our backend URL changes (e.g. when deploying to Render),
-// we update ONE line here instead of every API file.
+// PURPOSE: Central Axios instance + media URL helper
 // =============================================================
 
 import axios from 'axios'
 
-// Create a configured Axios instance
+// Backend base URL (without /api at end)
+export const BACKEND_URL = 'http://127.0.0.1:8000'
+
+// Helper to convert relative media URLs to absolute Django URLs
+// e.g. "/media/resumes/foo.pdf" -> "http://127.0.0.1:8000/media/resumes/foo.pdf"
+export const mediaUrl = (path) => {
+  if (!path) return ''
+  if (path.startsWith('http')) return path  // already absolute
+  return BACKEND_URL + path
+}
+
+// Configured Axios instance
 const api = axios.create({
-  baseURL: 'http://127.0.0.1:8000/api',  // Django backend URL
+  baseURL: BACKEND_URL + '/api',
   headers: {
     'Content-Type': 'application/json',
   },
 })
 
-// ─── REQUEST INTERCEPTOR ────────────────────────────────────
-// Runs before every API request
-// Automatically attaches the JWT token if user is logged in
+// Attach JWT token to every request
 api.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem('access_token')
@@ -31,9 +36,7 @@ api.interceptors.request.use(
   (error) => Promise.reject(error)
 )
 
-// ─── RESPONSE INTERCEPTOR ───────────────────────────────────
-// Runs after every API response
-// If token is expired (401), automatically log user out
+// Handle expired tokens
 api.interceptors.response.use(
   (response) => response,
   (error) => {
@@ -41,7 +44,6 @@ api.interceptors.response.use(
       localStorage.removeItem('access_token')
       localStorage.removeItem('refresh_token')
       localStorage.removeItem('user')
-      // Could redirect to login here later
     }
     return Promise.reject(error)
   }
