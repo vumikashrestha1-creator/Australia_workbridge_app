@@ -9,16 +9,21 @@ import Home               from './pages/Home'
 import Login              from './pages/Login'
 import Register           from './pages/Register'
 import JobListings        from './pages/JobListings'
+import JobDetail          from './pages/JobDetail'
+import StudentDashboard       from './pages/StudentDashboard'
+
 
 function App() {
   return (
     <div className="min-h-screen bg-gray-50">
       <Navbar />
       <Routes>
-        <Route path="/"         element={<Home />}         />
-        <Route path="/login"    element={<Login />}        />
-        <Route path="/register" element={<Register />}     />
-        <Route path="/jobs"     element={<JobListings />}  />
+        <Route path="/"          element={<Home />}         />
+        <Route path="/login"     element={<Login />}        />
+        <Route path="/register"  element={<Register />}     />
+        <Route path="/jobs"      element={<JobListings />}  />
+        <Route path="/jobs/:id"  element={<JobDetail />}    />
+        <Route path="/student/dashboard" element={<StudentDashboard />}   />
       </Routes>
     </div>
   )
