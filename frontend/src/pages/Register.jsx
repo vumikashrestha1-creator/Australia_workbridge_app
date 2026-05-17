@@ -18,7 +18,9 @@ import { useAuth }             from '../context/AuthContext'
 import {
   Mail, Lock, User, GraduationCap,
   Building2, Loader2,
-}                              from 'lucide-react'
+}     
+                         from 'lucide-react'
+import { isValidABN }          from '../utils/validators'
 
 const Register = () => {
   const { register }  = useAuth()
@@ -45,6 +47,7 @@ const Register = () => {
   // ─── UI STATE ─────────────────────────────────────────────
   const [error,   setError]   = useState('')
   const [loading, setLoading] = useState(false)
+  const [abnError, setAbnError] = useState('')
 
   // ─── HANDLE FORM SUBMISSION ──────────────────────────────
   const handleSubmit = async (e) => {
@@ -60,7 +63,13 @@ const Register = () => {
       setError('Password must be at least 8 characters')
       return
     }
-
+    // ABN validation for employers
+    if (role === 'employer') {
+      if (!isValidABN(abn)) {
+        setError('Please enter a valid 11-digit Australian Business Number')
+        return
+      }
+    }
     setLoading(true)
 
     try {
@@ -254,11 +263,41 @@ const Register = () => {
                   <input
                     type="text"
                     value={abn}
-                    onChange={(e) => setAbn(e.target.value)}
+                    onChange={(e) => {
+                      // Allow only digits and spaces, max 14 characters
+                      // (11 digits + up to 3 spaces for formatting)
+                      const value = e.target.value.replace(/[^\d\s]/g, '').slice(0, 14)
+                      setAbn(value)
+
+                      // Live validation feedback
+                      const cleanDigits = value.replace(/\s/g, '')
+                      if (cleanDigits.length === 0) {
+                        setAbnError('')
+                      } else if (cleanDigits.length < 11) {
+                        setAbnError(`${cleanDigits.length}/11 digits`)
+                      } else if (cleanDigits.length === 11 && !isValidABN(value)) {
+                        setAbnError('Invalid ABN — please check the number')
+                      } else if (isValidABN(value)) {
+                        setAbnError('')
+                      }
+                    }}
                     required
                     placeholder="12 345 678 901"
-                    className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none transition"
+                    className={`w-full px-4 py-2.5 border rounded-lg focus:ring-2 outline-none transition ${
+                      abnError
+                        ? 'border-red-300 focus:ring-red-500 focus:border-red-500'
+                        : abn && isValidABN(abn)
+                        ? 'border-green-300 focus:ring-green-500 focus:border-green-500'
+                        : 'border-gray-300 focus:ring-primary-500 focus:border-primary-500'
+                    }`}
                   />
+                  {/* Live validation message */}
+                  {abnError && (
+                    <p className="text-xs text-red-600 mt-1">{abnError}</p>
+                  )}
+                  {abn && isValidABN(abn) && !abnError && (
+                    <p className="text-xs text-green-600 mt-1">✓ Valid ABN</p>
+                  )}
                 </div>
               </>
             )}
