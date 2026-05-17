@@ -232,7 +232,7 @@ const JobRow = ({ job, applicantCount }) => {
       </div>
 
       {/* Actions */}
-      <div className="flex items-center gap-2">
+     <div className="flex items-center gap-2">
         <Link
           to={`/employer/job/${job.id}/applicants`}
           className="inline-flex items-center gap-1 px-3 py-1.5 bg-primary-600 hover:bg-primary-700 text-white text-sm font-medium rounded-lg transition"
@@ -242,11 +242,12 @@ const JobRow = ({ job, applicantCount }) => {
           View
         </Link>
         <Link
-          to={`/jobs/${job.id}`}
+          to={`/employer/job/${job.id}/edit`}
           className="inline-flex items-center gap-1 px-3 py-1.5 border border-gray-300 hover:border-primary-300 text-gray-700 text-sm font-medium rounded-lg transition"
+          title="Edit job"
         >
-          <TrendingUp className="w-4 h-4" />
-          Preview
+          <Edit className="w-4 h-4" />
+          Edit
         </Link>
       </div>
     </div>

@@ -47,6 +47,12 @@ class Application(models.Model):
     cover_note = models.TextField(blank=True, null=True)
     # Optional message from student to employer
 
+    # ─── INTERVIEW SCHEDULING ────────────────────────────────
+    interview_date = models.DateTimeField(blank=True, null=True)
+    # When the interview is scheduled — set by employer
+    interview_notes = models.TextField(blank=True, null=True)
+    # Optional: meeting link, instructions, location
+
     status = models.CharField(
         max_length=20,
         choices=STATUS_CHOICES,

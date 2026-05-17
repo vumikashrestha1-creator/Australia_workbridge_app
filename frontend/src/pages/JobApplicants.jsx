@@ -1,7 +1,8 @@
 // =============================================================
 // pages/JobApplicants.jsx
 // PURPOSE: Employer views all applicants for one job
-//          and updates their status (pending → shortlisted → etc.)
+//          Updates status pipeline (pending → shortlisted → etc.)
+//          Schedules / reschedules interviews when status = interview
 // =============================================================
 
 import { useEffect, useState }     from 'react'
@@ -9,6 +10,7 @@ import { useParams, Link }         from 'react-router-dom'
 import {
   ArrowLeft, Users, GraduationCap, Mail, Calendar,
   Clock, CheckCircle2, XCircle, TrendingUp, Loader2,
+  MapPin,
 }                                  from 'lucide-react'
 import { formatDistanceToNow }     from 'date-fns'
 import applicationsApi             from '../api/applicationsApi'
@@ -41,15 +43,18 @@ const JobApplicants = () => {
     fetchData()
   }, [jobId])
 
-  // ─── UPDATE STATUS ────────────────────────────────────
-  const handleStatusChange = async (appId, newStatus) => {
+  // ─── UPDATE STATUS OR INTERVIEW DETAILS ──────────────
+  // payload can be: { status }
+  //              OR { status, interview_date, interview_notes }
+  const handleStatusChange = async (appId, payload) => {
     try {
-      const updated = await applicationsApi.updateStatus(appId, newStatus)
+      const updated = await applicationsApi.updateStatus(appId, payload)
       setApplications((prev) =>
         prev.map((a) => (a.id === appId ? updated : a))
       )
-    } catch {
-      alert('Could not update status. Please try again.')
+    } catch (err) {
+      alert('Could not update. Please try again.')
+      throw err
     }
   }
 
@@ -122,7 +127,7 @@ const JobApplicants = () => {
 
 // ─── APPLICANT CARD ──────────────────────────────────────────
 const ApplicantCard = ({ application, onStatusChange }) => {
-  const student = application.student_details || {}
+  const student    = application.student_details || {}
   const appliedAgo = formatDistanceToNow(
     new Date(application.applied_at),
     { addSuffix: true }
@@ -177,7 +182,9 @@ const ApplicantCard = ({ application, onStatusChange }) => {
           <StatusBadge status={application.status} />
           <select
             value={application.status}
-            onChange={(e) => onStatusChange(application.id, e.target.value)}
+            onChange={(e) =>
+              onStatusChange(application.id, { status: e.target.value })
+            }
             className="text-sm border border-gray-300 rounded-lg px-3 py-1.5 focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none"
           >
             <option value="pending">Pending</option>
@@ -188,6 +195,135 @@ const ApplicantCard = ({ application, onStatusChange }) => {
           </select>
         </div>
       </div>
+
+      {/* ── INTERVIEW SCHEDULER (only when status = interview) ── */}
+      {application.status === 'interview' && (
+        <InterviewScheduler
+          application={application}
+          onSchedule={onStatusChange}
+        />
+      )}
+    </div>
+  )
+}
+
+
+// ─── INTERVIEW SCHEDULER ─────────────────────────────────────
+// Shows date/time picker + notes field when status is "interview"
+// Lets employer schedule OR reschedule the interview
+const InterviewScheduler = ({ application, onSchedule }) => {
+
+  // Convert ISO date to local datetime-input format (YYYY-MM-DDTHH:MM)
+  const initialDate = application.interview_date
+    ? application.interview_date.slice(0, 16)
+    : ''
+
+  const [date,   setDate]   = useState(initialDate)
+  const [notes,  setNotes]  = useState(application.interview_notes || '')
+  const [saving, setSaving] = useState(false)
+  const [saved,  setSaved]  = useState(false)
+
+  const handleSave = async () => {
+    setSaving(true)
+    setSaved(false)
+    try {
+      await onSchedule(application.id, {
+        status:          'interview',
+        interview_date:  date || null,
+        interview_notes: notes,
+      })
+      setSaved(true)
+      setTimeout(() => setSaved(false), 2000)
+    } catch {
+      // error alert handled in parent
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  // Detect if this is rescheduling (date already set) or new schedule
+  const isReschedule = !!application.interview_date
+
+  return (
+    <div className="mt-4 pt-4 border-t border-gray-100 bg-blue-50 -mx-5 -mb-5 px-5 py-4 rounded-b-xl">
+      <h4 className="text-sm font-semibold text-gray-900 mb-3 flex items-center gap-1">
+        <Calendar className="w-4 h-4 text-blue-600" />
+        {isReschedule ? 'Reschedule Interview' : 'Schedule Interview'}
+      </h4>
+
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-3">
+        {/* Date + time picker */}
+        <div>
+          <label className="block text-xs text-gray-600 mb-1">
+            Date &amp; time
+          </label>
+          <input
+            type="datetime-local"
+            value={date}
+            onChange={(e) => setDate(e.target.value)}
+            className="w-full px-3 py-1.5 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none"
+          />
+        </div>
+
+        {/* Location / notes */}
+        <div>
+          <label className="block text-xs text-gray-600 mb-1">
+            Location or video link
+          </label>
+          <input
+            type="text"
+            value={notes}
+            onChange={(e) => setNotes(e.target.value)}
+            placeholder="e.g. Zoom link or office address"
+            className="w-full px-3 py-1.5 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none"
+          />
+        </div>
+      </div>
+
+      {/* Show current scheduled details if any */}
+      {application.interview_date && !saved && (
+        <p className="text-xs text-gray-600 mb-2 inline-flex items-center gap-1">
+          <Clock className="w-3 h-3" />
+          Currently scheduled for{' '}
+          <span className="font-medium">
+            {new Date(application.interview_date).toLocaleString('en-AU', {
+              weekday: 'short',
+              month:   'short',
+              day:     'numeric',
+              hour:    '2-digit',
+              minute:  '2-digit',
+            })}
+          </span>
+          {application.interview_notes && (
+            <>
+              <span>·</span>
+              <span className="inline-flex items-center gap-1">
+                <MapPin className="w-3 h-3" />
+                {application.interview_notes}
+              </span>
+            </>
+          )}
+        </p>
+      )}
+
+      {/* Save button */}
+      <button
+        type="button"
+        onClick={handleSave}
+        disabled={saving || !date}
+        className="text-sm bg-primary-600 hover:bg-primary-700 disabled:bg-primary-300 text-white font-medium px-4 py-1.5 rounded-lg transition inline-flex items-center gap-1"
+      >
+        {saving ? (
+          <Loader2 className="w-3.5 h-3.5 animate-spin" />
+        ) : (
+          <Calendar className="w-3.5 h-3.5" />
+        )}
+        {saved
+          ? 'Saved!'
+          : isReschedule
+          ? 'Update Interview'
+          : 'Save Interview Details'}
+      </button>
     </div>
   )
 }

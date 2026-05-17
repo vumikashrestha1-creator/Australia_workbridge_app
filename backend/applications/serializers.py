@@ -40,6 +40,8 @@ class ApplicationSerializer(serializers.ModelSerializer):
             'job_details',      # full job object
             'cover_note',
             'status',
+            'interview_date',
+            'interview_notes',
             'applied_at',
             'updated_at',
         ]
@@ -97,5 +99,5 @@ class ApplicationStatusSerializer(serializers.ModelSerializer):
 
     class Meta:
         model  = Application
-        fields = ['status']
+        fields = ['status', 'interview_date', 'interview_notes']
         # Only status can be updated by employer

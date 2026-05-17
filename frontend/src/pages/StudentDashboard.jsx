@@ -20,6 +20,7 @@ import {
 import { formatDistanceToNow }      from 'date-fns'
 import applicationsApi              from '../api/applicationsApi'
 import { useAuth }                  from '../context/AuthContext'
+import UpcomingEvents               from '../components/UpcomingEvents'
 
 const StudentDashboard = () => {
   const { user } = useAuth()
@@ -95,6 +96,10 @@ const StudentDashboard = () => {
       </div>
 
       {/* ── APPLICATIONS LIST ──────────────────────────── */}
+      {/* ── MAIN LAYOUT: Applications + Calendar ──────── */}
+      <div className="grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-6">
+
+      {/* ── APPLICATIONS LIST ──────────────────────────── */}
       <div className="bg-white border border-gray-200 rounded-2xl p-6">
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
@@ -154,6 +159,11 @@ const StudentDashboard = () => {
             ))}
           </div>
         )}
+      </div>
+
+      {/* ── UPCOMING EVENTS SIDEBAR ──────────────────── */}
+      <UpcomingEvents applications={applications} />
+
       </div>
     </div>
   )

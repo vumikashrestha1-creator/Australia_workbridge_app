@@ -33,12 +33,11 @@ const applicationsApi = {
 
   // ─── EMPLOYER — UPDATE STATUS ─────────────────────────
   // PUT /api/applications/<id>/status/
+  // payload can include: { status, interview_date, interview_notes }
   updateStatus: async (id, status) => {
-    const response = await api.put(`/applications/${id}/status/`, {
-      status,
-    })
+    const response = await api.put(`/applications/${id}/status/`, payload)
     return response.data
-  },
+      },
 
   // ─── EMPLOYER — APPLICANTS FOR A JOB ──────────────────
   // GET /api/applications/job/<jobId>/

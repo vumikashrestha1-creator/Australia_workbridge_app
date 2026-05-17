@@ -14,6 +14,7 @@ import StudentDashboard       from './pages/StudentDashboard'
 import EmployerDashboard      from './pages/EmployerDashboard'
 import PostJob                from './pages/PostJob'
 import JobApplicants          from './pages/JobApplicants'
+import EditJob from './pages/EditJob'
 
 
 function App() {
@@ -31,6 +32,7 @@ function App() {
         <Route path="/employer/dashboard" element={<EmployerDashboard />} />
         <Route path="/employer/post-job"  element={<PostJob />}           />
         <Route path="/employer/job/:jobId/applicants" element={<JobApplicants />} />
+        <Route path="/employer/job/:id/edit" element={<EditJob />} />
       </Routes>
     </div>
   )
