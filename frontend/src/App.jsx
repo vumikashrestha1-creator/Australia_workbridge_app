@@ -11,6 +11,9 @@ import Register           from './pages/Register'
 import JobListings        from './pages/JobListings'
 import JobDetail          from './pages/JobDetail'
 import StudentDashboard       from './pages/StudentDashboard'
+import EmployerDashboard      from './pages/EmployerDashboard'
+import PostJob                from './pages/PostJob'
+import JobApplicants          from './pages/JobApplicants'
 
 
 function App() {
@@ -24,6 +27,10 @@ function App() {
         <Route path="/jobs"      element={<JobListings />}  />
         <Route path="/jobs/:id"  element={<JobDetail />}    />
         <Route path="/student/dashboard" element={<StudentDashboard />}   />
+         {/* Employer */}
+        <Route path="/employer/dashboard" element={<EmployerDashboard />} />
+        <Route path="/employer/post-job"  element={<PostJob />}           />
+        <Route path="/employer/job/:jobId/applicants" element={<JobApplicants />} />
       </Routes>
     </div>
   )
