@@ -59,6 +59,12 @@ const jobsApi = {
     const response = await api.get('/jobs/all/')
     return response.data
   },
+
+  // Alias used by AdminDashboard
+  getAll: async () => {
+    const response = await api.get('/jobs/all/')
+    return response.data
+  },
 }
 
 export default jobsApi

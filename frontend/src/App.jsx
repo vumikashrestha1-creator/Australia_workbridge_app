@@ -16,6 +16,7 @@ import PostJob                from './pages/PostJob'
 import EditJob                from './pages/EditJob'
 import JobApplicants          from './pages/JobApplicants'
 import Profile                from './pages/Profile'
+import AdminDashboard from './pages/AdminDashboard'
 
 function App() {
   return (
@@ -38,6 +39,8 @@ function App() {
         <Route path="/employer/post-job"              element={<PostJob />}           />
         <Route path="/employer/job/:id/edit"          element={<EditJob />}           />
         <Route path="/employer/job/:jobId/applicants" element={<JobApplicants />}     />
+        <Route path="/admin/dashboard" element={<AdminDashboard />} />
+        
       </Routes>
     </div>
   )

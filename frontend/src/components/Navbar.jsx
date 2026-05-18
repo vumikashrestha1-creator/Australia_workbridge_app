@@ -46,6 +46,16 @@ const Navbar = () => {
               Browse Jobs
             </Link>
 
+            {/* Admin-only link — only visible to admin users */}
+            {user?.role === 'admin' && (
+              <Link
+                to="/admin/dashboard"
+                className="text-sm font-medium text-gray-700 hover:text-primary-600 transition"
+              >
+                Admin
+              </Link>
+            )}
+
             {/* Logged out */}
             {!user && (
               <>
