@@ -227,3 +227,44 @@ class AdminJobDeleteView(APIView):
                 {'error': 'Job not found'},
                 status=status.HTTP_404_NOT_FOUND
             )
+
+class AdminUserUpdateView(APIView):
+    """
+    PUT /api/auth/admin/users/<user_id>/
+    Admin can edit any user's profile details.
+    """
+    permission_classes = [permissions.IsAuthenticated, IsAdmin]
+
+    def put(self, request, user_id):
+        try:
+            user = User.objects.get(id=user_id)
+            serializer = UserSerializer(user, data=request.data, partial=True)
+            if serializer.is_valid():
+                serializer.save()
+                return Response(serializer.data)
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        except User.DoesNotExist:
+            return Response({'error': 'User not found'}, status=status.HTTP_404_NOT_FOUND)
+
+
+class AdminSetPasswordView(APIView):
+    """
+    POST /api/auth/admin/users/<user_id>/set-password/
+    Admin can reset any user's password.
+    """
+    permission_classes = [permissions.IsAuthenticated, IsAdmin]
+
+    def post(self, request, user_id):
+        try:
+            user     = User.objects.get(id=user_id)
+            password = request.data.get('password', '')
+            if len(password) < 8:
+                return Response(
+                    {'error': 'Password must be at least 8 characters'},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+            user.set_password(password)
+            user.save()
+            return Response({'message': 'Password changed successfully'})
+        except User.DoesNotExist:
+            return Response({'error': 'User not found'}, status=status.HTTP_404_NOT_FOUND)

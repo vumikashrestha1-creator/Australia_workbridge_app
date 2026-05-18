@@ -56,6 +56,14 @@ const applicationsApi = {
     const response = await api.get(`/applications/job/${jobId}/`)
     return response.data
   },
+
+  // ─── STUDENT — WITHDRAW APPLICATION ──────────────────
+  // DELETE /api/applications/<id>/withdraw/
+  // Only works if status is still 'pending'
+  withdraw: async (id) => {
+    const response = await api.delete(`/applications/${id}/withdraw/`)
+    return response.data
+  },
 }
 
 export default applicationsApi

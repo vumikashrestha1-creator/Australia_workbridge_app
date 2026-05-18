@@ -171,3 +171,34 @@ class AdminApplicationListView(APIView):
         applications = Application.objects.all()
         serializer   = ApplicationSerializer(applications, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
+    
+class ApplicationWithdrawView(APIView):
+    """
+    DELETE /api/applications/<id>/withdraw/
+    Student can withdraw their own pending application.
+    Only allowed if status is still 'pending'.
+    """
+    permission_classes = [permissions.IsAuthenticated]
+
+    def delete(self, request, pk):
+        application = get_object_or_404(Application, pk=pk)
+
+        # Only the student who applied can withdraw
+        if application.student != request.user:
+            return Response(
+                {'error': 'Not authorised'},
+                status=status.HTTP_403_FORBIDDEN
+            )
+
+        # Can only withdraw if still pending
+        if application.status != 'pending':
+            return Response(
+                {'error': 'You can only withdraw pending applications'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        application.delete()
+        return Response(
+            {'message': 'Application withdrawn successfully'},
+            status=status.HTTP_204_NO_CONTENT
+        )

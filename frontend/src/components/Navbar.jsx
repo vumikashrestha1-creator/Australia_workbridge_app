@@ -1,11 +1,15 @@
 // =============================================================
 // components/Navbar.jsx
 // PURPOSE: Top navigation bar shown on every page
-// Adds "Profile" link for students (resume management)
+// Shows different links based on user role:
+//   Logged out  → Browse Jobs | Login | Sign Up
+//   Student     → Browse Jobs | Dashboard | Profile icon | Logout
+//   Employer    → Browse Jobs | Dashboard | Logout
+//   Admin       → Browse Jobs | Admin Panel | Logout
 // =============================================================
 
-import { Link, useNavigate }  from 'react-router-dom'
-import { useAuth }            from '../context/AuthContext'
+import { Link, useNavigate } from 'react-router-dom'
+import { useAuth }           from '../context/AuthContext'
 import { Briefcase, LogOut, User } from 'lucide-react'
 
 const Navbar = () => {
@@ -17,11 +21,15 @@ const Navbar = () => {
     navigate('/login')
   }
 
-  // Pick the right dashboard URL based on role
+  // Each role goes to a different dashboard
   const dashboardPath =
-    isAdmin    ? '/admin' :
+    isAdmin    ? '/admin/dashboard' :
     isEmployer ? '/employer/dashboard' :
                  '/student/dashboard'
+
+  // Label changes based on role
+  const dashboardLabel =
+    isAdmin ? 'Admin Panel' : 'Dashboard'
 
   return (
     <nav className="bg-white border-b border-gray-200 shadow-sm sticky top-0 z-50">
@@ -36,6 +44,7 @@ const Navbar = () => {
             <span className="text-xl font-bold text-gray-900">WorkBridge</span>
           </Link>
 
+          {/* NAV LINKS */}
           <div className="flex items-center gap-2 sm:gap-4">
 
             {/* Always visible */}
@@ -46,17 +55,7 @@ const Navbar = () => {
               Browse Jobs
             </Link>
 
-            {/* Admin-only link — only visible to admin users */}
-            {user?.role === 'admin' && (
-              <Link
-                to="/admin/dashboard"
-                className="text-sm font-medium text-gray-700 hover:text-primary-600 transition"
-              >
-                Admin
-              </Link>
-            )}
-
-            {/* Logged out */}
+            {/* ── LOGGED OUT ──────────────────────────── */}
             {!user && (
               <>
                 <Link
@@ -74,27 +73,29 @@ const Navbar = () => {
               </>
             )}
 
-            {/* Logged in */}
+            {/* ── LOGGED IN ───────────────────────────── */}
             {user && (
               <>
+                {/* Single dashboard link — label changes per role */}
                 <Link
                   to={dashboardPath}
                   className="text-gray-700 hover:text-primary-600 font-medium text-sm sm:text-base"
                 >
-                  Dashboard
+                  {dashboardLabel}
                 </Link>
 
-                {/* Profile link — students only */}
+                {/* Profile icon — students only */}
                 {isStudent && (
                   <Link
                     to="/profile"
-                    className="text-gray-700 hover:text-primary-600 font-medium text-sm sm:text-base"
-                    title="Manage profile and resume"
+                    className="text-gray-600 hover:text-primary-600 transition"
+                    title="My Profile & Resume"
                   >
                     <User className="w-5 h-5" />
                   </Link>
                 )}
 
+                {/* User avatar + name */}
                 <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 bg-gray-100 rounded-full">
                   <div className="w-7 h-7 rounded-full bg-primary-600 text-white flex items-center justify-center text-xs font-semibold">
                     {user.full_name?.charAt(0) || 'U'}
@@ -104,9 +105,10 @@ const Navbar = () => {
                   </span>
                 </div>
 
+                {/* Logout button */}
                 <button
                   onClick={handleLogout}
-                  className="flex items-center gap-1 text-gray-600 hover:text-danger transition"
+                  className="flex items-center gap-1 text-gray-600 hover:text-red-500 transition"
                   title="Logout"
                 >
                   <LogOut className="w-5 h-5" />

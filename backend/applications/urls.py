@@ -11,6 +11,7 @@ from .views import (
     ApplicationStatusUpdateView,
     JobApplicationListView,
     AdminApplicationListView,
+    ApplicationWithdrawView,
 )
 
 urlpatterns = [
@@ -42,4 +43,7 @@ urlpatterns = [
          AdminApplicationListView.as_view(),
          name='all-applications'),
     # GET /api/applications/all/ — admin sees everything
+
+    path('<int:pk>/withdraw/', ApplicationWithdrawView.as_view(), name='application-withdraw'),
+
 ]

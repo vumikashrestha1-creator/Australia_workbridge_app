@@ -12,6 +12,8 @@ from .views import (
     AdminStatsView,
     AdminUserListView,
     AdminJobDeleteView,
+    AdminUserUpdateView,
+    AdminSetPasswordView,
 )
 
 urlpatterns = [
@@ -27,4 +29,6 @@ urlpatterns = [
     path('admin/users/',               AdminUserListView.as_view(), name='admin-users'),
     path('admin/users/<int:user_id>/', AdminUserListView.as_view(), name='admin-user-delete'),
     path('admin/jobs/<int:job_id>/',   AdminJobDeleteView.as_view(),name='admin-job-delete'),
+    path('admin/users/<int:user_id>/',              AdminUserUpdateView.as_view(),  name='admin-user-update'),
+    path('admin/users/<int:user_id>/set-password/', AdminSetPasswordView.as_view(), name='admin-set-password'),
 ]
